@@ -1,6 +1,7 @@
 package com.kaldis.chris.librij.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -20,9 +21,11 @@ public class Book extends AbstractEntity {
     @Column(name = "author", nullable = false)
     private String author;
 
+    @Min(1)
     @Column(name = "total_pages")
     private Integer totalPages;
 
+    @Min(0)
     @Column(name = "current_page")
     private Integer currentPage;
 
