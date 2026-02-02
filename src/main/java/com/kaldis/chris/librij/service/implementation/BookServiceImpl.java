@@ -7,6 +7,7 @@ import com.kaldis.chris.librij.domain.Location;
 import com.kaldis.chris.librij.dto.book.CreateBookRequestDTO;
 import com.kaldis.chris.librij.dto.book.GetBookResponseDTO;
 import com.kaldis.chris.librij.dto.book.UpdateBookRequestDTO;
+import com.kaldis.chris.librij.exception.ResourceNotFound;
 import com.kaldis.chris.librij.mapper.BookMapper;
 import com.kaldis.chris.librij.service.BookService;
 import lombok.RequiredArgsConstructor;
@@ -50,7 +51,7 @@ public class BookServiceImpl implements BookService {
         Book book = bookMapper.createRequestDTOtoBook(createBookRequestDTO);
         if (createBookRequestDTO.getLocationId() != null) {
             Location location = locationRepository.findById(createBookRequestDTO.getLocationId())
-                    .orElseThrow(() -> new RuntimeException("Location not found with id: " + createBookRequestDTO.getLocationId()));
+                    .orElseThrow(() -> new ResourceNotFound("Location for the given new book not found."));
             book.setLocation(location);
         }
         book = bookRepository.save(book);
@@ -61,7 +62,7 @@ public class BookServiceImpl implements BookService {
     @Override
     public GetBookResponseDTO readBook(UUID bookId) {
         Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new RuntimeException("Book not found with id: " + bookId));
+                .orElseThrow(() -> new ResourceNotFound("Book for the given book id not found."));
         GetBookResponseDTO bookResponseDTO = bookMapper.bookToGetBookResponseDTOWithLinks(book);
         bookResponseDTO.setLocationId(book.getLocation().getId());
 
@@ -71,13 +72,13 @@ public class BookServiceImpl implements BookService {
     @Override
     public GetBookResponseDTO updateBook(UUID bookId, UpdateBookRequestDTO updateBookRequestDTO) {
         Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new RuntimeException("Book not found with id: " + bookId));
+                .orElseThrow(() -> new ResourceNotFound("Book for the given book id not found."));
         
         bookMapper.updateBookFromUpdateRequestDTO(updateBookRequestDTO, book);
         if (updateBookRequestDTO.getLocationId() != null
                 && !updateBookRequestDTO.getLocationId().equals(book.getLocation().getId())) {
             var location = locationRepository.findById(updateBookRequestDTO.getLocationId())
-                    .orElseThrow(() -> new RuntimeException("Location not found with id: " + updateBookRequestDTO.getLocationId()));
+                    .orElseThrow(() -> new ResourceNotFound("Location for the given book id not found."));
             book.setLocation(location);
         }
         book = bookRepository.save(book);
@@ -93,7 +94,7 @@ public class BookServiceImpl implements BookService {
     @Override
     public void deleteBook(UUID bookId) {
         Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new RuntimeException("Book not found with id: " + bookId));
+                .orElseThrow(() -> new ResourceNotFound("Book for the given book id not found."));
         bookRepository.delete(book);
     }
 

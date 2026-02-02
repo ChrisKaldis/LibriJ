@@ -5,6 +5,7 @@ import com.kaldis.chris.librij.domain.Location;
 import com.kaldis.chris.librij.dto.location.CreateLocationRequestDTO;
 import com.kaldis.chris.librij.dto.location.GetLocationResponseDTO;
 import com.kaldis.chris.librij.dto.location.UpdateLocationRequestDTO;
+import com.kaldis.chris.librij.exception.ResourceNotFound;
 import com.kaldis.chris.librij.mapper.LocationMapper;
 import com.kaldis.chris.librij.service.LocationService;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +44,7 @@ public class LocationServiceImpl implements LocationService {
     @Override
     public GetLocationResponseDTO readLocation(UUID locationId) {
         Location location = locationRepository.findById(locationId)
-                .orElseThrow(() -> new RuntimeException("Location not found with id: " + locationId));
+                .orElseThrow(() -> new ResourceNotFound("Location for the given location id not found."));
 
         return locationMapper.locationToGetLocationResponseDTOWithLinks(location);
     }
@@ -51,7 +52,7 @@ public class LocationServiceImpl implements LocationService {
     @Override
     public GetLocationResponseDTO updateLocation(UUID locationId, UpdateLocationRequestDTO updateLocationRequestDTO) {
         Location location = locationRepository.findById(locationId)
-                .orElseThrow(() -> new RuntimeException("Location not found with id: " + locationId));
+                .orElseThrow(() -> new ResourceNotFound("Location for the given location id not found."));
         
         locationMapper.updateLocationFromUpdateRequestDTO(updateLocationRequestDTO, location);
         location = locationRepository.save(location);
@@ -62,7 +63,7 @@ public class LocationServiceImpl implements LocationService {
     @Override
     public void deleteLocation(UUID locationId) {
         Location location = locationRepository.findById(locationId)
-                .orElseThrow(() -> new RuntimeException("Location not found with id: " + locationId));
+                .orElseThrow(() -> new ResourceNotFound("Location for the given location id not found."));
         locationRepository.delete(location);
     }
 
