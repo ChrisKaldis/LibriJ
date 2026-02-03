@@ -1,5 +1,6 @@
 package com.kaldis.chris.librij.service.implementation;
 
+import com.kaldis.chris.librij.assembler.BookAssembler;
 import com.kaldis.chris.librij.data.jpa.repository.BookRepository;
 import com.kaldis.chris.librij.data.jpa.repository.LocationRepository;
 import com.kaldis.chris.librij.domain.Book;
@@ -11,11 +12,15 @@ import com.kaldis.chris.librij.exception.ResourceNotFound;
 import com.kaldis.chris.librij.mapper.BookMapper;
 import com.kaldis.chris.librij.service.BookService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.Link;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.util.List;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -23,27 +28,33 @@ import java.util.UUID;
 public class BookServiceImpl implements BookService {
 
     private final LocationRepository locationRepository;
+
     private final BookRepository bookRepository;
     private final BookMapper bookMapper;
 
-    @Override
-    public CollectionModel<GetBookResponseDTO> findAllBooks() {
-        List<GetBookResponseDTO> books = bookRepository.findAll()
-                .stream()
-                .map(bookMapper::bookToGetBookResponseDTOWithLinks)
-                .toList();
+    private final BookAssembler bookAssembler;
+    private final PagedResourcesAssembler<Book> pagedResourcesAssembler;
 
-        return CollectionModel.of(books, Link.of("api/v1/books").withSelfRel());
+    @Override
+    public CollectionModel<GetBookResponseDTO> findAllBooks(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Book> books = bookRepository.findAll(pageable);
+
+        var bookResponseDTOPagedModel = pagedResourcesAssembler.toModel(books, bookAssembler);
+
+        return bookResponseDTOPagedModel
+                .add(Link.of(ServletUriComponentsBuilder.fromCurrentRequest().build().toUriString()).withSelfRel());
     }
 
     @Override
-    public CollectionModel<GetBookResponseDTO> findByLocationId(UUID locationId) {
-        List<GetBookResponseDTO> books = bookRepository.findAllByLocationId(locationId)
-                .stream()
-                .map(bookMapper::bookToGetBookResponseDTOWithLinks)
-                .toList();
+    public CollectionModel<GetBookResponseDTO> findByLocationId(UUID locationId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Book> books = bookRepository.findAllByLocationId(locationId, pageable);
 
-        return CollectionModel.of(books, Link.of("api/v1/locaion/" + locationId + "/books").withSelfRel());
+        var bookResponseDTOPagedModel = pagedResourcesAssembler.toModel(books, bookAssembler);
+
+        return bookResponseDTOPagedModel
+                .add(Link.of(ServletUriComponentsBuilder.fromCurrentRequest().build().toUriString()).withSelfRel());
     }
 
     @Override
@@ -56,17 +67,15 @@ public class BookServiceImpl implements BookService {
         }
         book = bookRepository.save(book);
 
-        return bookMapper.bookToGetBookResponseDTOWithLinks(book);
+        return bookAssembler.toModel(book);
     }
 
     @Override
     public GetBookResponseDTO readBook(UUID bookId) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new ResourceNotFound("Book for the given book id not found."));
-        GetBookResponseDTO bookResponseDTO = bookMapper.bookToGetBookResponseDTOWithLinks(book);
-        bookResponseDTO.setLocationId(book.getLocation().getId());
 
-        return bookResponseDTO;
+        return bookAssembler.toModel(book);
     }
 
     @Override
@@ -83,12 +92,7 @@ public class BookServiceImpl implements BookService {
         }
         book = bookRepository.save(book);
 
-        GetBookResponseDTO bookResponseDTO = bookMapper.bookToGetBookResponseDTOWithLinks(book);
-        if (book.getLocation() != null) {
-            bookResponseDTO.setLocationId(book.getLocation().getId());
-        }
-
-        return bookResponseDTO;
+        return bookAssembler.toModel(book);
     }
 
     @Override

@@ -14,7 +14,7 @@ public interface BookService {
     GetBookResponseDTO updateBook(UUID bookId, UpdateBookRequestDTO updateBookRequestDTO);
     void deleteBook(UUID bookId);
 
-    CollectionModel<GetBookResponseDTO> findAllBooks();
-    CollectionModel<GetBookResponseDTO> findByLocationId(UUID locationId);
+    CollectionModel<GetBookResponseDTO> findAllBooks(int page, int size);
+    CollectionModel<GetBookResponseDTO> findByLocationId(UUID locationId, int page, int size);
 
 }

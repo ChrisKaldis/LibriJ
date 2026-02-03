@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RequiredArgsConstructor
-@Validated
 @RestController
 @RequestMapping("api/v1/locations")
 public class LocationController {
@@ -25,15 +24,16 @@ public class LocationController {
     private final BookService bookService;
 
     @GetMapping
-    public ResponseEntity<CollectionModel<GetLocationResponseDTO>> findAllLocations() {
-        var locationResponseDTOCollectionModel = locationService.findAllLocations();
+    public ResponseEntity<CollectionModel<GetLocationResponseDTO>> findAllLocations(
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "5") int size) {
+        var locationResponseDTOCollectionModel = locationService.findAllLocations(page, size);
 
         return ResponseEntity.ok(locationResponseDTOCollectionModel);
     }
 
     @PostMapping
-    public ResponseEntity<GetLocationResponseDTO> saveLocation(@Validated @RequestBody
-                                                               CreateLocationRequestDTO createLocationRequestDTO) {
+    public ResponseEntity<GetLocationResponseDTO> saveLocation(
+            @Validated @RequestBody CreateLocationRequestDTO createLocationRequestDTO) {
         var locationResponseDTO = locationService.createLocation(createLocationRequestDTO);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(locationResponseDTO);
@@ -47,9 +47,8 @@ public class LocationController {
     }
 
     @PutMapping("/{locationId}")
-    public ResponseEntity<GetLocationResponseDTO> updateLocation(@PathVariable UUID locationId,
-                                                                 @Validated @RequestBody
-                                                                 UpdateLocationRequestDTO updateLocationRequestDTO) {
+    public ResponseEntity<GetLocationResponseDTO> updateLocation(
+            @PathVariable UUID locationId, @Validated @RequestBody UpdateLocationRequestDTO updateLocationRequestDTO) {
         var locationResponseDTO = locationService.updateLocation(locationId, updateLocationRequestDTO);
 
         return ResponseEntity.ok(locationResponseDTO);
@@ -63,8 +62,10 @@ public class LocationController {
     }
 
     @GetMapping("{locationId}/books")
-    public ResponseEntity<CollectionModel<GetBookResponseDTO>> findLocationAllBooks(@PathVariable UUID locationId) {
-        var bookResponseDTOCollectionModel = bookService.findByLocationId(locationId);
+    public ResponseEntity<CollectionModel<GetBookResponseDTO>> findLocationAllBooks(
+            @PathVariable UUID locationId,
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "5") int size) {
+        var bookResponseDTOCollectionModel = bookService.findByLocationId(locationId, page, size);
 
         return ResponseEntity.ok(bookResponseDTOCollectionModel);
     }

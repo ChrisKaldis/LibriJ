@@ -8,7 +8,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
-import org.springframework.hateoas.Link;
 
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface BookMapper {
@@ -21,15 +20,5 @@ public interface BookMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "location", ignore = true)
     void updateBookFromUpdateRequestDTO(UpdateBookRequestDTO updateBookRequestDTO, @MappingTarget Book book);
-
-    default GetBookResponseDTO bookToGetBookResponseDTOWithLinks(Book book) {
-        GetBookResponseDTO dto = bookToGetBookResponseDTO(book);
-        dto.add(Link.of("/api/v1/books/" + dto.getBookId()).withSelfRel());
-        if (dto.getLocationId() != null) {
-            dto.add(Link.of("/api/v1/locations/" + dto.getLocationId()).withRel("location"));
-        }
-
-        return dto;
-    }
 
 }

@@ -14,6 +14,6 @@ public interface LocationService {
     GetLocationResponseDTO updateLocation(UUID locationId, UpdateLocationRequestDTO updateLocationRequestDTO);
     void deleteLocation(UUID locationId);
 
-    CollectionModel<GetLocationResponseDTO> findAllLocations();
+    CollectionModel<GetLocationResponseDTO> findAllLocations(int page, int size);
 
 }

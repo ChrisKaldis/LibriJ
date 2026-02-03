@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RequiredArgsConstructor
-@Validated
 @RestController
 @RequestMapping("api/v1/books")
 public class BookController {
@@ -22,15 +21,16 @@ public class BookController {
     private final BookService bookService;
 
     @GetMapping
-    public ResponseEntity<CollectionModel<GetBookResponseDTO>> findAll() {
-        var bookResponseDTOCollectionModel = bookService.findAllBooks();
+    public ResponseEntity<CollectionModel<GetBookResponseDTO>> findAll(@RequestParam(defaultValue = "0") int page,
+                                                                       @RequestParam(defaultValue = "5") int size) {
+        var bookResponseDTOCollectionModel = bookService.findAllBooks(page, size);
 
         return ResponseEntity.ok(bookResponseDTOCollectionModel);
     }
 
     @PostMapping
-    public ResponseEntity<GetBookResponseDTO> saveBook(@Validated @RequestBody
-                                                           CreateBookRequestDTO createBookRequestDTO) {
+    public ResponseEntity<GetBookResponseDTO> saveBook(
+            @Validated @RequestBody CreateBookRequestDTO createBookRequestDTO) {
         var bookResponseDTO = bookService.createBook(createBookRequestDTO);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(bookResponseDTO);
@@ -44,9 +44,8 @@ public class BookController {
     }
 
     @PutMapping("/{bookId}")
-    public ResponseEntity<GetBookResponseDTO> updateBook(@PathVariable UUID bookId,
-                                                         @Validated @RequestBody
-                                                         UpdateBookRequestDTO updateBookRequestDTO) {
+    public ResponseEntity<GetBookResponseDTO> updateBook(
+            @PathVariable UUID bookId, @Validated @RequestBody UpdateBookRequestDTO updateBookRequestDTO) {
         var bookResponseDTO = bookService.updateBook(bookId, updateBookRequestDTO);
 
         return ResponseEntity.ok(bookResponseDTO);
